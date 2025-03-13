@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cemerlang Akademik (1 Mei 2025)</title>
+</head>
+<body>
+    <h2>Cemerlang Akademik (1 Mei 2025)</h2>
+
+    <form id="ajkForm">
+        <label for="fullName">Full Name:</label>
+        <input type="text" id="fullName" required>
+
+        <label for="matricNumber">Matric Number:</label>
+        <input type="text" id="matricNumber" required>
+
+        <label for="positionSelect">Select Position:</label>
+        <select id="positionSelect"></select>
+
+        <button type="submit">Apply</button>
+    </form>
+
+    <h3>Available Positions</h3>
+    <ul id="positionList"></ul>
+
+    <!-- Firebase Modular SDK -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // Firebase configuration
+        const firebaseConfig = {
+            apiKey: "AIzaSyAOyhtNKNRUtJUCoSIsT4sslMMq289IyeI",
+            authDomain: "ca-ajk-be652.firebaseapp.co",
+            projectId: "ca-ajk-be652",
+            storageBucket: "ca-ajk-be652.firebasestorage.app",
+            messagingSenderId: "9643801361",
+            appId: "1:9643801361:web:27e4e3e2b9ddd9de4b2ab0",
+            measurementId: "G-1PSSTQ9DSQ"
+        };
+
+        // Initialize Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+
+        // Expose Firebase to the app.js script
+        window.db = db;
+        window.firestoreFunctions = { collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot };
+    </script>
+
+    <script src="app.js"></script>
+</body>
+</html>
