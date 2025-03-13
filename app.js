@@ -63,9 +63,10 @@ document.addEventListener("DOMContentLoaded", function() {
 
         let fullName = document.getElementById("fullName").value.trim();
         let matricNumber = document.getElementById("matricNumber").value.trim();
+        let phoneNumber = document.getElementById("phoneNumber").value.trim();
         let positionId = positionSelect.value;
 
-        if (!fullName || !matricNumber || !positionId) {
+        if (!fullName || !matricNumber || !phoneNumber || !positionId) {
             alert("Please fill in all fields.");
             return;
         }
@@ -82,11 +83,14 @@ document.addEventListener("DOMContentLoaded", function() {
         let positionData = positionSnap.data();
 
         if (positionData.quota > 0) {
+            // Decrease quota count
             await updateDoc(positionRef, { quota: positionData.quota - 1 });
 
+            // Store application in Firestore
             await setDoc(doc(applicationsRef, matricNumber), {
                 fullName: fullName,
                 matricNumber: matricNumber,
+                phoneNumber: phoneNumber, // Save phone number
                 position: positionId,
                 timestamp: new Date()
             });
