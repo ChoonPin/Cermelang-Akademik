@@ -15,6 +15,9 @@
         <label for="matricNumber">Matric Number:</label>
         <input type="text" id="matricNumber" required>
 
+        <label for="phoneNumber">Phone Number:</label>
+        <input type="tel" id="phoneNumber" required placeholder="e.g., 0123456789">
+
         <label for="positionSelect">Select Position:</label>
         <select id="positionSelect"></select>
 
@@ -32,9 +35,9 @@
         // Firebase configuration
         const firebaseConfig = {
             apiKey: "AIzaSyAOyhtNKNRUtJUCoSIsT4sslMMq289IyeI",
-            authDomain: "ca-ajk-be652.firebaseapp.co",
+            authDomain: "ca-ajk-be652.firebaseapp.com",
             projectId: "ca-ajk-be652",
-            storageBucket: "ca-ajk-be652.firebasestorage.app",
+            storageBucket: "ca-ajk-be652.appspot.com",
             messagingSenderId: "9643801361",
             appId: "1:9643801361:web:27e4e3e2b9ddd9de4b2ab0",
             measurementId: "G-1PSSTQ9DSQ"
@@ -49,6 +52,7 @@
         window.firestoreFunctions = { collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot };
     </script>
 
+    <!-- Link to JavaScript Logic -->
     <script src="app.js"></script>
 </body>
 </html>
