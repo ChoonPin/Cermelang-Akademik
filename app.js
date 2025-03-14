@@ -41,15 +41,12 @@ function updatePositionDisplay() {
 // Update the applications table
 function updateTableDisplay() {
     let tableBody = document.getElementById("applicationsTable");
-    tableBody.innerHTML = ""; // Clear only tbody, not headers
+    tableBody.innerHTML = ""; // Clear old table entries
 
     Object.keys(applicants).forEach(position => {
         let row = tableBody.insertRow();
-        let positionCell = row.insertCell(0);
-        let applicantsCell = row.insertCell(1);
-
-        positionCell.textContent = position;
-        applicantsCell.textContent = applicants[position].join(", ");
+        row.insertCell(0).textContent = position;
+        row.insertCell(1).textContent = applicants[position].join(", ");
     });
 }
 
@@ -60,6 +57,7 @@ document.getElementById("applyBtn").addEventListener("click", () => {
     let phoneNumber = document.getElementById("phoneNumber").value.trim();
     let selectedPosition = document.getElementById("positionSelect").value;
 
+    // Validate input fields
     if (!fullName || !matricNumber || !phoneNumber) {
         alert("Please fill in all fields.");
         return;
@@ -76,22 +74,17 @@ document.getElementById("applyBtn").addEventListener("click", () => {
         applicants[selectedPosition].push(applicantInfo);
 
         updatePositionDisplay(); // Refresh positions
-        updateTableDisplay(); // Ensure the table updates to show the new applicant
-
-        // Clear input fields after successful application
-        document.getElementById("fullName").value = "";
-        document.getElementById("matricNumber").value = "";
-        document.getElementById("phoneNumber").value = "";
     } else {
         alert("No slots available for this position.");
     }
 });
 
-// Shadow DOM implementation (prevents duplicate shadow root)
+// Fix: Prevent duplicate shadow DOM creation
 document.addEventListener("DOMContentLoaded", () => {
     let shadowHost = document.createElement("div");
     document.body.appendChild(shadowHost);
 
+    // ✅ Ensure shadow DOM is created only once
     if (!shadowHost.shadowRoot) {
         let shadowRoot = shadowHost.attachShadow({ mode: "open" });
 
