@@ -1,4 +1,4 @@
-// Available positions with slots
+// Define available positions with their slot limits
 let positions = {
     "Bendahari": 0,
     "Unit Logistik": 2,
@@ -10,7 +10,10 @@ let positions = {
     "Unit Urus Setia": 0
 };
 
-// Populate the dropdown and positions list
+// Store applicants in an object format: { positionName: [applicant1, applicant2] }
+let applicants = {};
+
+// Populate the dropdown and available positions list
 function updatePositionDisplay() {
     let positionSelect = document.getElementById("positionSelect");
     let availablePositionsDiv = document.getElementById("availablePositions");
@@ -31,6 +34,20 @@ function updatePositionDisplay() {
         positionText.textContent = `${position}: ${positions[position]} slots left`;
         availablePositionsDiv.appendChild(positionText);
     });
+
+    updateTableDisplay(); // Ensure the table updates whenever positions update
+}
+
+// Update the applications table
+function updateTableDisplay() {
+    let table = document.getElementById("applicationsTable");
+    table.innerHTML = ""; // Clear old table entries
+
+    Object.keys(applicants).forEach(position => {
+        let row = table.insertRow();
+        row.insertCell(0).textContent = position;
+        row.insertCell(1).textContent = applicants[position].join(", ");
+    });
 }
 
 // Handle application submission
@@ -46,26 +63,22 @@ document.getElementById("applyBtn").addEventListener("click", () => {
     }
 
     if (positions[selectedPosition] > 0) {
-        positions[selectedPosition]--;
+        positions[selectedPosition]--; // Reduce available slots
 
-        let table = document.getElementById("applicationsTable");
-        let existingRow = [...table.rows].find(row => row.cells[0].textContent === selectedPosition);
+        let applicantInfo = `${fullName} (${matricNumber})`;
 
-        if (existingRow) {
-            existingRow.cells[1].textContent += `, ${fullName} (${matricNumber})`;
-        } else {
-            let row = table.insertRow();
-            row.insertCell(0).textContent = selectedPosition;
-            row.insertCell(1).textContent = `${fullName} (${matricNumber})`;
+        if (!applicants[selectedPosition]) {
+            applicants[selectedPosition] = [];
         }
+        applicants[selectedPosition].push(applicantInfo);
 
-        updatePositionDisplay();
+        updatePositionDisplay(); // Refresh positions
     } else {
         alert("No slots available for this position.");
     }
 });
 
-// Shadow DOM implementation
+// Shadow DOM implementation (prevents duplicate shadow root)
 document.addEventListener("DOMContentLoaded", () => {
     let shadowHost = document.createElement("div");
     document.body.appendChild(shadowHost);
@@ -90,5 +103,5 @@ document.addEventListener("DOMContentLoaded", () => {
         console.warn("Shadow root already exists. Skipping.");
     }
 
-    updatePositionDisplay();
+    updatePositionDisplay(); // Ensure UI updates when the page loads
 });
