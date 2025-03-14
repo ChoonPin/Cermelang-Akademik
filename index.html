@@ -7,52 +7,21 @@
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 20px;
-            padding: 20px;
-            max-width: 600px;
-            margin: auto;
-            background-color: #f4f4f4;
-        }
-        h1, h2 {
-            text-align: center;
-        }
-        label {
-            display: block;
-            margin-top: 10px;
-        }
-        input, select, button {
-            width: 100%;
-            padding: 10px;
-            margin-top: 5px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        button {
-            background-color: #28a745;
-            color: white;
-            cursor: pointer;
-            font-weight: bold;
-        }
-        button:hover {
-            background-color: #218838;
         }
         table {
             width: 100%;
             border-collapse: collapse;
             margin-top: 20px;
-            background-color: white;
         }
         th, td {
             border: 1px solid black;
             padding: 8px;
             text-align: left;
         }
-        th {
-            background-color: #007bff;
-            color: white;
-        }
-        p {
-            font-weight: bold;
+        input, select, button {
+            display: block;
+            margin-bottom: 10px;
+            padding: 5px;
         }
     </style>
 </head>
@@ -60,9 +29,9 @@
 
     <h1>Cemerlang Akademik (1 Mei 2025)</h1>
 
-    <label>Full Name: <input type="text" id="fullName" required></label>
-    <label>Matric Number: <input type="text" id="matricNumber" required></label>
-    <label>Phone Number: <input type="text" id="phoneNumber" placeholder="e.g., 0123456789" required></label>
+    <label>Full Name: <input type="text" id="fullName"></label>
+    <label>Matric Number: <input type="text" id="matricNumber"></label>
+    <label>Phone Number: <input type="text" id="phoneNumber" placeholder="e.g., 0123456789"></label>
 
     <label for="positionSelect">Select Position: 
         <select id="positionSelect"></select>
