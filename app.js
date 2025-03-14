@@ -4,6 +4,7 @@ document.addEventListener("DOMContentLoaded", function() {
 
     const positionSelect = document.getElementById("positionSelect");
     const positionList = document.getElementById("positionList");
+    const applicationsTable = document.querySelector("#applicationsTable tbody");
 
     // Default AJK positions
     const defaultPositions = [
@@ -30,6 +31,7 @@ document.addEventListener("DOMContentLoaded", function() {
             }
         }
         loadPositions();
+        loadApplications();
     }
 
     function loadPositions() {
@@ -42,21 +44,48 @@ document.addEventListener("DOMContentLoaded", function() {
             snapshot.docs.forEach((doc) => {
                 let data = doc.data();
 
-                // Add to dropdown
                 let option = document.createElement("option");
                 option.value = doc.id;
                 option.textContent = `${data.name} (Remaining: ${data.quota})`;
                 positionSelect.appendChild(option);
 
-                // Add to display list
                 let li = document.createElement("li");
                 li.textContent = `${data.name}: ${data.quota} slots left`;
                 positionList.appendChild(li);
             });
+
+            loadApplications();
         });
     }
 
-    initializePositions();
+    async function loadApplications() {
+        const applicationsRef = collection(db, "applications");
+        const snapshot = await getDocs(applicationsRef);
+
+        let applicationsData = {};
+        snapshot.docs.forEach((doc) => {
+            let data = doc.data();
+            if (!applicationsData[data.position]) {
+                applicationsData[data.position] = [];
+            }
+            applicationsData[data.position].push(data.fullName);
+        });
+
+        applicationsTable.innerHTML = "";
+        const positionsRef = collection(db, "positions");
+        const positionsSnapshot = await getDocs(positionsRef);
+
+        positionsSnapshot.docs.forEach((doc) => {
+            let positionData = doc.data();
+            let applicants = applicationsData[doc.id] || [];
+            
+            let row = `<tr>
+                <td>${positionData.name}</td>
+                <td>${applicants.length > 0 ? applicants.join(", ") : "No applicants yet"}</td>
+            </tr>`;
+            applicationsTable.innerHTML += row;
+        });
+    }
 
     document.getElementById("ajkForm").addEventListener("submit", async function(e) {
         e.preventDefault();
@@ -83,14 +112,12 @@ document.addEventListener("DOMContentLoaded", function() {
         let positionData = positionSnap.data();
 
         if (positionData.quota > 0) {
-            // Decrease quota count
             await updateDoc(positionRef, { quota: positionData.quota - 1 });
 
-            // Store application in Firestore
             await setDoc(doc(applicationsRef, matricNumber), {
                 fullName: fullName,
                 matricNumber: matricNumber,
-                phoneNumber: phoneNumber, // Save phone number
+                phoneNumber: phoneNumber,
                 position: positionId,
                 timestamp: new Date()
             });
@@ -102,4 +129,6 @@ document.addEventListener("DOMContentLoaded", function() {
             alert("Sorry, this position is full.");
         }
     });
+
+    initializePositions();
 });
