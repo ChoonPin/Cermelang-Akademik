@@ -1,134 +1,94 @@
-document.addEventListener("DOMContentLoaded", function() {
-    const db = window.db;
-    const { collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot } = window.firestoreFunctions;
+// Available positions with slots
+let positions = {
+    "Bendahari": 0,
+    "Unit Logistik": 2,
+    "Unit Protokol": 1,
+    "Unit Publisiti": 2,
+    "Setiausaha": 0,
+    "Unit Teknikal": 2,
+    "Timbalan Pengarah": 0,
+    "Unit Urus Setia": 0
+};
 
-    const positionSelect = document.getElementById("positionSelect");
-    const positionList = document.getElementById("positionList");
-    const applicationsTable = document.querySelector("#applicationsTable tbody");
+// Populate the dropdown and positions list
+function updatePositionDisplay() {
+    let positionSelect = document.getElementById("positionSelect");
+    let availablePositionsDiv = document.getElementById("availablePositions");
 
-    // Default AJK positions
-    const defaultPositions = [
-        { id: "timbalan_pengarah", name: "Timbalan Pengarah", quota: 1 },
-        { id: "setiausaha", name: "Setiausaha", quota: 1 },
-        { id: "bendahari", name: "Bendahari", quota: 1 },
-        { id: "urus_setia", name: "Unit Urus Setia", quota: 2 },
-        { id: "logistik", name: "Unit Logistik", quota: 2 },
-        { id: "teknikal", name: "Unit Teknikal", quota: 2 },
-        { id: "publisiti", name: "Unit Publisiti", quota: 2 },
-        { id: "protokol", name: "Unit Protokol", quota: 2 }
-    ];
+    positionSelect.innerHTML = ""; 
+    availablePositionsDiv.innerHTML = "";
 
-    async function initializePositions() {
-        const positionsRef = collection(db, "positions");
-        const snapshot = await getDocs(positionsRef);
-
-        if (snapshot.empty) {
-            for (const pos of defaultPositions) {
-                await setDoc(doc(db, "positions", pos.id), {
-                    name: pos.name,
-                    quota: pos.quota
-                });
-            }
+    Object.keys(positions).forEach(position => {
+        let option = document.createElement("option");
+        option.value = position;
+        option.textContent = `${position} (Remaining: ${positions[position]})`;
+        if (positions[position] === 0) {
+            option.disabled = true;
         }
-        loadPositions();
-        loadApplications();
-    }
+        positionSelect.appendChild(option);
 
-    function loadPositions() {
-        const positionsRef = collection(db, "positions");
-
-        onSnapshot(positionsRef, (snapshot) => {
-            positionSelect.innerHTML = "";
-            positionList.innerHTML = "";
-
-            snapshot.docs.forEach((doc) => {
-                let data = doc.data();
-
-                let option = document.createElement("option");
-                option.value = doc.id;
-                option.textContent = `${data.name} (Remaining: ${data.quota})`;
-                positionSelect.appendChild(option);
-
-                let li = document.createElement("li");
-                li.textContent = `${data.name}: ${data.quota} slots left`;
-                positionList.appendChild(li);
-            });
-
-            loadApplications();
-        });
-    }
-
-    async function loadApplications() {
-        const applicationsRef = collection(db, "applications");
-        const snapshot = await getDocs(applicationsRef);
-
-        let applicationsData = {};
-        snapshot.docs.forEach((doc) => {
-            let data = doc.data();
-            if (!applicationsData[data.position]) {
-                applicationsData[data.position] = [];
-            }
-            applicationsData[data.position].push(data.fullName);
-        });
-
-        applicationsTable.innerHTML = "";
-        const positionsRef = collection(db, "positions");
-        const positionsSnapshot = await getDocs(positionsRef);
-
-        positionsSnapshot.docs.forEach((doc) => {
-            let positionData = doc.data();
-            let applicants = applicationsData[doc.id] || [];
-            
-            let row = `<tr>
-                <td>${positionData.name}</td>
-                <td>${applicants.length > 0 ? applicants.join(", ") : "No applicants yet"}</td>
-            </tr>`;
-            applicationsTable.innerHTML += row;
-        });
-    }
-
-    document.getElementById("ajkForm").addEventListener("submit", async function(e) {
-        e.preventDefault();
-
-        let fullName = document.getElementById("fullName").value.trim();
-        let matricNumber = document.getElementById("matricNumber").value.trim();
-        let phoneNumber = document.getElementById("phoneNumber").value.trim();
-        let positionId = positionSelect.value;
-
-        if (!fullName || !matricNumber || !phoneNumber || !positionId) {
-            alert("Please fill in all fields.");
-            return;
-        }
-
-        const applicationsRef = collection(db, "applications");
-        const positionRef = doc(db, "positions", positionId);
-        const positionSnap = await getDoc(positionRef);
-
-        if (!positionSnap.exists()) {
-            alert("Position not found.");
-            return;
-        }
-
-        let positionData = positionSnap.data();
-
-        if (positionData.quota > 0) {
-            await updateDoc(positionRef, { quota: positionData.quota - 1 });
-
-            await setDoc(doc(applicationsRef, matricNumber), {
-                fullName: fullName,
-                matricNumber: matricNumber,
-                phoneNumber: phoneNumber,
-                position: positionId,
-                timestamp: new Date()
-            });
-
-            alert("Successfully applied!");
-            loadPositions();
-            document.getElementById("ajkForm").reset();
-        } else {
-            alert("Sorry, this position is full.");
-        }
+        let positionText = document.createElement("p");
+        positionText.textContent = `${position}: ${positions[position]} slots left`;
+        availablePositionsDiv.appendChild(positionText);
     });
+}
 
-    initializePositions();
+// Handle application submission
+document.getElementById("applyBtn").addEventListener("click", () => {
+    let fullName = document.getElementById("fullName").value.trim();
+    let matricNumber = document.getElementById("matricNumber").value.trim();
+    let phoneNumber = document.getElementById("phoneNumber").value.trim();
+    let selectedPosition = document.getElementById("positionSelect").value;
+
+    if (!fullName || !matricNumber || !phoneNumber) {
+        alert("Please fill in all fields.");
+        return;
+    }
+
+    if (positions[selectedPosition] > 0) {
+        positions[selectedPosition]--;
+
+        let table = document.getElementById("applicationsTable");
+        let existingRow = [...table.rows].find(row => row.cells[0].textContent === selectedPosition);
+
+        if (existingRow) {
+            existingRow.cells[1].textContent += `, ${fullName} (${matricNumber})`;
+        } else {
+            let row = table.insertRow();
+            row.insertCell(0).textContent = selectedPosition;
+            row.insertCell(1).textContent = `${fullName} (${matricNumber})`;
+        }
+
+        updatePositionDisplay();
+    } else {
+        alert("No slots available for this position.");
+    }
+});
+
+// Shadow DOM implementation
+document.addEventListener("DOMContentLoaded", () => {
+    let shadowHost = document.createElement("div");
+    document.body.appendChild(shadowHost);
+
+    if (!shadowHost.shadowRoot) {
+        let shadowRoot = shadowHost.attachShadow({ mode: "open" });
+
+        let style = document.createElement("style");
+        style.textContent = `
+            p {
+                color: blue;
+                font-weight: bold;
+            }
+        `;
+
+        let message = document.createElement("p");
+        message.textContent = "Shadow DOM Initialized!";
+        
+        shadowRoot.appendChild(style);
+        shadowRoot.appendChild(message);
+    } else {
+        console.warn("Shadow root already exists. Skipping.");
+    }
+
+    updatePositionDisplay();
 });
