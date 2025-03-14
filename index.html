@@ -4,6 +4,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Cemerlang Akademik (1 Mei 2025)</title>
+    <style>
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid black;
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+    </style>
 </head>
 <body>
     <h2>Cemerlang Akademik (1 Mei 2025)</h2>
@@ -27,7 +42,18 @@
     <h3>Available Positions</h3>
     <ul id="positionList"></ul>
 
-    <!-- Firebase Modular SDK -->
+    <h3>Applications Overview</h3>
+    <table id="applicationsTable">
+        <thead>
+            <tr>
+                <th>Position</th>
+                <th>Applicants</th>
+            </tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <!-- Firebase SDK -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getFirestore, collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
@@ -47,12 +73,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
 
-        // Expose Firebase to the app.js script
+        // Expose Firebase to app.js
         window.db = db;
         window.firestoreFunctions = { collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot };
     </script>
 
-    <!-- Link to JavaScript Logic -->
     <script src="app.js"></script>
 </body>
 </html>
