@@ -1,109 +1,105 @@
-// Define available positions with their slot limits
-let positions = {
-    "Bendahari": 0,
-    "Unit Logistik": 2,
-    "Unit Protokol": 1,
-    "Unit Publisiti": 2,
-    "Setiausaha": 0,
-    "Unit Teknikal": 2,
-    "Timbalan Pengarah": 0,
-    "Unit Urus Setia": 0
-};
+document.addEventListener("DOMContentLoaded", function() {
+    const db = window.db;
+    const { collection, getDocs, doc, setDoc, getDoc, updateDoc, onSnapshot } = window.firestoreFunctions;
 
-// Store applicants in an object format: { positionName: [applicant1, applicant2] }
-let applicants = {};
+    const positionSelect = document.getElementById("positionSelect");
+    const positionList = document.getElementById("positionList");
 
-// Populate the dropdown and available positions list
-function updatePositionDisplay() {
-    let positionSelect = document.getElementById("positionSelect");
-    let availablePositionsDiv = document.getElementById("availablePositions");
+    // Default AJK positions
+    const defaultPositions = [
+        { id: "timbalan_pengarah", name: "Timbalan Pengarah", quota: 1 },
+        { id: "setiausaha", name: "Setiausaha", quota: 1 },
+        { id: "bendahari", name: "Bendahari", quota: 1 },
+        { id: "urus_setia", name: "Unit Urus Setia", quota: 2 },
+        { id: "logistik", name: "Unit Logistik", quota: 2 },
+        { id: "teknikal", name: "Unit Teknikal", quota: 2 },
+        { id: "publisiti", name: "Unit Publisiti", quota: 2 },
+        { id: "protokol", name: "Unit Protokol", quota: 2 }
+    ];
 
-    positionSelect.innerHTML = ""; 
-    availablePositionsDiv.innerHTML = "";
+    async function initializePositions() {
+        const positionsRef = collection(db, "positions");
+        const snapshot = await getDocs(positionsRef);
 
-    Object.keys(positions).forEach(position => {
-        let option = document.createElement("option");
-        option.value = position;
-        option.textContent = `${position} (Remaining: ${positions[position]})`;
-        if (positions[position] === 0) {
-            option.disabled = true;
-        }
-        positionSelect.appendChild(option);
-
-        let positionText = document.createElement("p");
-        positionText.textContent = `${position}: ${positions[position]} slots left`;
-        availablePositionsDiv.appendChild(positionText);
-    });
-
-    updateTableDisplay(); // Ensure the table updates whenever positions update
-}
-
-// Update the applications table
-function updateTableDisplay() {
-    let tableBody = document.getElementById("applicationsTable");
-    tableBody.innerHTML = ""; // Clear old table entries
-
-    Object.keys(applicants).forEach(position => {
-        let row = tableBody.insertRow();
-        row.insertCell(0).textContent = position;
-        row.insertCell(1).textContent = applicants[position].join(", ");
-    });
-}
-
-// Handle application submission
-document.getElementById("applyBtn").addEventListener("click", () => {
-    let fullName = document.getElementById("fullName").value.trim();
-    let matricNumber = document.getElementById("matricNumber").value.trim();
-    let phoneNumber = document.getElementById("phoneNumber").value.trim();
-    let selectedPosition = document.getElementById("positionSelect").value;
-
-    // Validate input fields
-    if (!fullName || !matricNumber || !phoneNumber) {
-        alert("Please fill in all fields.");
-        return;
-    }
-
-    if (positions[selectedPosition] > 0) {
-        positions[selectedPosition]--; // Reduce available slots
-
-        let applicantInfo = `${fullName} (${matricNumber})`;
-
-        if (!applicants[selectedPosition]) {
-            applicants[selectedPosition] = [];
-        }
-        applicants[selectedPosition].push(applicantInfo);
-
-        updatePositionDisplay(); // Refresh positions
-    } else {
-        alert("No slots available for this position.");
-    }
-});
-
-// Fix: Prevent duplicate shadow DOM creation
-document.addEventListener("DOMContentLoaded", () => {
-    let shadowHost = document.createElement("div");
-    document.body.appendChild(shadowHost);
-
-    // ✅ Ensure shadow DOM is created only once
-    if (!shadowHost.shadowRoot) {
-        let shadowRoot = shadowHost.attachShadow({ mode: "open" });
-
-        let style = document.createElement("style");
-        style.textContent = `
-            p {
-                color: blue;
-                font-weight: bold;
+        if (snapshot.empty) {
+            for (const pos of defaultPositions) {
+                await setDoc(doc(db, "positions", pos.id), {
+                    name: pos.name,
+                    quota: pos.quota
+                });
             }
-        `;
-
-        let message = document.createElement("p");
-        message.textContent = "Shadow DOM Initialized!";
-        
-        shadowRoot.appendChild(style);
-        shadowRoot.appendChild(message);
-    } else {
-        console.warn("Shadow root already exists. Skipping.");
+        }
+        loadPositions();
     }
 
-    updatePositionDisplay(); // Ensure UI updates when the page loads
+    function loadPositions() {
+        const positionsRef = collection(db, "positions");
+
+        onSnapshot(positionsRef, (snapshot) => {
+            positionSelect.innerHTML = "";
+            positionList.innerHTML = "";
+
+            snapshot.docs.forEach((doc) => {
+                let data = doc.data();
+
+                // Add to dropdown
+                let option = document.createElement("option");
+                option.value = doc.id;
+                option.textContent = ${data.name} (Remaining: ${data.quota});
+                positionSelect.appendChild(option);
+
+                // Add to display list
+                let li = document.createElement("li");
+                li.textContent = ${data.name}: ${data.quota} slots left;
+                positionList.appendChild(li);
+            });
+        });
+    }
+
+    initializePositions();
+
+    document.getElementById("ajkForm").addEventListener("submit", async function(e) {
+        e.preventDefault();
+
+        let fullName = document.getElementById("fullName").value.trim();
+        let matricNumber = document.getElementById("matricNumber").value.trim();
+        let phoneNumber = document.getElementById("phoneNumber").value.trim();
+        let positionId = positionSelect.value;
+
+        if (!fullName || !matricNumber || !phoneNumber || !positionId) {
+            alert("Please fill in all fields.");
+            return;
+        }
+
+        const applicationsRef = collection(db, "applications");
+        const positionRef = doc(db, "positions", positionId);
+        const positionSnap = await getDoc(positionRef);
+
+        if (!positionSnap.exists()) {
+            alert("Position not found.");
+            return;
+        }
+
+        let positionData = positionSnap.data();
+
+        if (positionData.quota > 0) {
+            // Decrease quota count
+            await updateDoc(positionRef, { quota: positionData.quota - 1 });
+
+            // Store application in Firestore
+            await setDoc(doc(applicationsRef, matricNumber), {
+                fullName: fullName,
+                matricNumber: matricNumber,
+                phoneNumber: phoneNumber, // Save phone number
+                position: positionId,
+                timestamp: new Date()
+            });
+
+            alert("Successfully applied!");
+            loadPositions();
+            document.getElementById("ajkForm").reset();
+        } else {
+            alert("Sorry, this position is full.");
+        }
+    });
 });
