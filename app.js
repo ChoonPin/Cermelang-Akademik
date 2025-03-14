@@ -40,13 +40,16 @@ function updatePositionDisplay() {
 
 // Update the applications table
 function updateTableDisplay() {
-    let table = document.getElementById("applicationsTable");
-    table.innerHTML = ""; // Clear old table entries
+    let tableBody = document.getElementById("applicationsTable");
+    tableBody.innerHTML = ""; // Clear only tbody, not headers
 
     Object.keys(applicants).forEach(position => {
-        let row = table.insertRow();
-        row.insertCell(0).textContent = position;
-        row.insertCell(1).textContent = applicants[position].join(", ");
+        let row = tableBody.insertRow();
+        let positionCell = row.insertCell(0);
+        let applicantsCell = row.insertCell(1);
+
+        positionCell.textContent = position;
+        applicantsCell.textContent = applicants[position].join(", ");
     });
 }
 
@@ -73,6 +76,12 @@ document.getElementById("applyBtn").addEventListener("click", () => {
         applicants[selectedPosition].push(applicantInfo);
 
         updatePositionDisplay(); // Refresh positions
+        updateTableDisplay(); // Ensure the table updates to show the new applicant
+
+        // Clear input fields after successful application
+        document.getElementById("fullName").value = "";
+        document.getElementById("matricNumber").value = "";
+        document.getElementById("phoneNumber").value = "";
     } else {
         alert("No slots available for this position.");
     }
