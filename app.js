@@ -45,12 +45,12 @@ document.addEventListener("DOMContentLoaded", function() {
                 // Add to dropdown
                 let option = document.createElement("option");
                 option.value = doc.id;
-                option.textContent = ${data.name} (Remaining: ${data.quota});
+                option.textContent = `${data.name} (Remaining: ${data.quota})`;
                 positionSelect.appendChild(option);
 
                 // Add to display list
                 let li = document.createElement("li");
-                li.textContent = ${data.name}: ${data.quota} slots left;
+                li.textContent = `${data.name}: ${data.quota} slots left`;
                 positionList.appendChild(li);
             });
         });
